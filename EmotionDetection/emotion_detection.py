@@ -1,28 +1,25 @@
-import requests 
+import requests
 import json
 
 def emotion_detector(text_to_analyse):
-    url = "https://sn-watson-emotion.labs.skills.network/v1/watson.runtime.nlp.v1/NlpService/EmotionPredict"
-    myobj = {"raw_document": { "text": text_to_analyse } }
+
+    url = 'https://sn-watson-emotion.labs.skills.network/v1/watson.runtime.nlp.v1/NlpService/EmotionPredict'
     headers = {"grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock"}
-
+    myobj = {"raw_document": { "text": text_to_analyse } }
     response = requests.post(url, json = myobj, headers = headers)
-
-def format_response(response):
-    res = json.loads(response.text)
-    formatted_output = res['EmotionPredictions'][0]['emotion']
+    status_code = response.status_code
     
-    formatted_response = {
-        'anger': formatted_output['anger'],
-        'disgust': formatted_output['disgust'],
-        'fear': formatted_output['fear'],
-        'joy': formatted_output['joy'],
-        'sadness': formatted_output['sadness'],
-        'dominant_emotion': '<name of the dominant emotion>'
-    }
+    if status_code == 400:
+        formatted_output = { 'anger': None,
+                             'disgust': None,
+                             'fear': None,
+                             'joy': None,
+                             'sadness': None,
+                             'dominant_emotion': None }
+    else:
+        res = json.loads(response.text)
+        formatted_output = res['emotionPredictions'][0]['emotion']
+        dominant_emotion = max(formatted_response, key = lambda x: formatted_response[x])
+        formatted_response['dominant_dictionary'] = dominant_emotion
 
-    dominant_emotion = max(formatted_response, key = lambda x: formatted_response[x])
-    formatted_response['dominant_dictionary'] = dominant_emotion
-    return format_response
-
-    
+    return formatted_response 
